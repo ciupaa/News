@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<title>Știri</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Știri">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#EDF0F4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F151C" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" id="touch-icon" href="">
+<style>
+:root {
+  --bg: #EDF0F4;
+  --panel: #F8F9FB;
+  --ink: #131C26;
+  --muted: #5C6B7A;
+  --line: #D5DBE3;
+  --accent: #2744D8;
+  --accent-ink: #FFFFFF;
+  --read: #7C8896;
+  --serif: ui-serif, "New York", Georgia, "Times New Roman", serif;
+  --sans: system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0F151C;
+    --panel: #151D26;
+    --ink: #E7ECF2;
+    --muted: #8C9AA9;
+    --line: #26313D;
+    --accent: #8CA4FF;
+    --accent-ink: #0F151C;
+    --read: #6B7885;
+  }
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.4;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Antet */
+.masthead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px 24px;
+  padding: 18px max(24px, env(safe-area-inset-right, 0px)) 14px max(24px, env(safe-area-inset-left, 0px));
+  border-bottom: 1px solid var(--line);
+}
+.masthead h1 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 2.6rem;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.masthead .when { margin-top: 6px; color: var(--muted); font-size: 0.95rem; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+
+.search {
+  width: 220px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  overflow: hidden;
+}
+.seg button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+
+.btn {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  cursor: pointer;
+}
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.btn:disabled { opacity: 0.6; cursor: default; }
+.only-narrow { display: none; }
+
+/* Corp */
+.body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 290px 1fr;
+}
+aside.sources {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 18px 16px 24px max(20px, env(safe-area-inset-left, 0px));
+  border-right: 1px solid var(--line);
+}
+aside.sources h2 {
+  margin: 18px 0 6px;
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+aside.sources h2:first-child { margin-top: 0; }
+.src-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+.src-row label { flex: 1; display: flex; align-items: center; gap: 10px; cursor: pointer; min-width: 0; }
+.src-row input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--accent); flex: none; }
+.src-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.src-state { font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
+.src-state.err { color: #C2410C; }
+@media (prefers-color-scheme: dark) { .src-state.err { color: #FB923C; } }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex: none; background: var(--c, var(--accent)); }
+.link-btn { border: 0; background: transparent; color: var(--muted); text-decoration: underline; cursor: pointer; min-height: 44px; padding: 0 6px; }
+.add-src { margin-top: 18px; width: 100%; }
+
+main.feed {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px max(24px, env(safe-area-inset-right, 0px)) 40px 28px;
+}
+.feed-inner { max-width: 800px; }
+.day {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 26px 0 4px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--ink);
+}
+.day:first-child { margin-top: 14px; }
+.day h2 { margin: 0; font-family: var(--serif); font-size: 1.5rem; font-weight: 700; }
+.day span { color: var(--muted); font-size: 0.9rem; }
+
+.item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+  color: inherit;
+  text-decoration: none;
+}
+.item .meta { grid-column: 1; display: flex; align-items: center; gap: 8px; font-size: 0.86rem; color: var(--muted); }
+.item .meta .src { font-weight: 600; color: var(--ink); }
+.item h3 {
+  grid-column: 1;
+  margin: 2px 0 0;
+  font-family: var(--serif);
+  font-size: 1.28rem;
+  line-height: 1.25;
+  font-weight: 650;
+}
+.item p {
+  grid-column: 1;
+  margin: 2px 0 0;
+  max-width: 68ch;
+  color: var(--muted);
+  font-size: 0.97rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.item .thumb {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  width: 112px;
+  height: 84px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: var(--line);
+  align-self: start;
+}
+.item:active h3 { color: var(--accent); }
+.item.read h3 { color: var(--read); font-weight: 500; }
+.item.read .src { color: var(--muted); }
+
+.empty { margin: 60px 0; color: var(--muted); max-width: 46ch; }
+.empty strong { display: block; margin-bottom: 6px; color: var(--ink); font-family: var(--serif); font-size: 1.3rem; }
+
+dialog {
+  width: min(440px, calc(100vw - 32px));
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+  color: var(--ink);
+}
+dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
+dialog h2 { margin: 0 0 14px; font-family: var(--serif); }
+dialog label { display: block; margin-bottom: 12px; font-size: 0.92rem; color: var(--muted); }
+dialog input, dialog select {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 4px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--ink);
+}
+dialog .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+.form-err { color: #C2410C; min-height: 1.2em; font-size: 0.9rem; }
+
+/* Ecran îngust (iPad portret mic, telefon) */
+@media (max-width: 860px) {
+  .body { grid-template-columns: 1fr; }
+  aside.sources { display: none; border-right: 0; }
+  .show-sources aside.sources { display: block; }
+  .show-sources main.feed { display: none; }
+  .only-narrow { display: inline-block; }
+  .masthead h1 { font-size: 2.1rem; }
+  .search { width: 100%; }
+  .item .thumb { width: 88px; height: 66px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .item { transition: background-color 0.15s; }
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="masthead">
+    <div>
+      <h1>Știri</h1>
+      <div class="when" id="stats">Se încarcă…</div>
+    </div>
+    <div class="controls">
+      <input class="search" id="q" type="search" placeholder="Caută în titluri" aria-label="Caută în titluri">
+      <div class="seg" role="group" aria-label="Categorie">
+        <button type="button" data-cat="all" aria-pressed="true">Toate</button>
+        <button type="button" data-cat="ro" aria-pressed="false">România</button>
+        <button type="button" data-cat="int" aria-pressed="false">Internațional</button>
+      </div>
+      <button class="btn only-narrow" id="toggle-sources" type="button">Surse</button>
+      <button class="btn primary" id="refresh" type="button">Reîncarcă</button>
+    </div>
+  </header>
+
+  <div class="body">
+    <aside class="sources" id="sources" aria-label="Surse"></aside>
+    <main class="feed" id="feed"><div class="feed-inner" id="feed-inner"></div></main>
+  </div>
+</div>
+
+<dialog id="add-dialog">
+  <form method="dialog" id="add-form">
+    <h2>Adaugă o sursă</h2>
+    <label>Nume
+      <input id="f-name" type="text" required placeholder="De exemplu: Pro TV Sport">
+    </label>
+    <label>Adresa feed-ului RSS
+      <input id="f-url" type="url" required placeholder="https://site.ro/rss">
+    </label>
+    <label>Categorie
+      <select id="f-cat">
+        <option value="ro">România</option>
+        <option value="int">Internațional</option>
+      </select>
+    </label>
+    <div class="form-err" id="f-err" role="alert"></div>
+    <div class="actions">
+      <button class="btn" type="button" id="f-cancel">Anulează</button>
+      <button class="btn primary" type="submit">Adaugă sursă</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+'use strict';
+
+/* ====== SETĂRI (le poți edita) ====== */
+
+// Dacă ai un proxy propriu (de exemplu un Cloudflare Worker), pune adresa lui aici.
+// Trebuie să accepte ?url=<adresa-feed> și să întoarcă conținutul feed-ului.
+const CUSTOM_PROXY = '';
+
+const MAX_PER_SOURCE = 25;
+const REFRESH_MINUTES = 10;
+
+const DEFAULT_SOURCES = [
+  { id: 'digi24',     name: 'Digi24',            cat: 'ro',  url: 'https://www.digi24.ro/rss' },
+  { id: 'hotnews',    name: 'HotNews',           cat: 'ro',  url: 'https://hotnews.ro/feed' },
+  { id: 'g4media',    name: 'G4Media',           cat: 'ro',  url: 'https://www.g4media.ro/feed' },
+  { id: 'libertatea', name: 'Libertatea',        cat: 'ro',  url: 'https://www.libertatea.ro/feed' },
+  { id: 'protv',      name: 'Știrile ProTV',     cat: 'ro',  url: 'https://rss.stirileprotv.ro/' },
+  { id: 'mediafax',   name: 'Mediafax',          cat: 'ro',  url: 'https://www.mediafax.ro/rss' },
+  { id: 'adevarul',   name: 'Adevărul',          cat: 'ro',  url: 'https://adevarul.ro/rss/' },
+  { id: 'europalibera', name: 'Europa Liberă România', cat: 'ro', url: 'https://romania.europalibera.org/api/zrqiteuuir' },
+  { id: 'zf',         name: 'Ziarul Financiar',  cat: 'ro',  url: 'https://www.zf.ro/rss/zf-24/' },
+  { id: 'bbc',        name: 'BBC News',          cat: 'int', url: 'https://feeds.bbci.co.uk/news/world/rss.xml' },
+  { id: 'aljazeera',  name: 'Al Jazeera',        cat: 'int', url: 'https://www.aljazeera.com/xml/rss/all.xml' },
+  { id: 'guardian',   name: 'The Guardian',      cat: 'int', url: 'https://www.theguardian.com/world/rss' },
+];
+
+/* ====== STARE ====== */
+
+const store = {
+  get(key, fallback) {
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+    catch (e) { return fallback; }
+  },
+  set(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* spațiu plin sau blocat */ }
+  },
+};
+
+let custom = store.get('stiri:custom', []);
+let off = new Set(store.get('stiri:off', []));
+let readIds = new Set(store.get('stiri:read', []));
+let itemsBySource = store.get('stiri:cache', {});
+let lastUpdate = store.get('stiri:updated', 0);
+let status = {};            // id -> { state: 'loading' | 'ok' | 'err', n }
+let activeCat = 'all';
+let query = '';
+let refreshing = false;
+
+const $ = (id) => document.getElementById(id);
+const allSources = () => DEFAULT_SOURCES.concat(custom);
+
+function colorFor(src) {
+  const i = allSources().findIndex((s) => s.id === src.id);
+  return 'hsl(' + ((Math.max(i, 0) * 47 + 215) % 360) + ', 58%, 46%)';
+}
+
+/* ====== DESCĂRCARE ȘI PARSARE ====== */
+
+const looksLikeFeed = (t) => /<(rss|feed|rdf:RDF)[\s>]/i.test(t || '');
+
+function withTimeout(ms) {
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), ms);
+  return { signal: c.signal, done: () => clearTimeout(t) };
+}
+
+async function fetchRaw(proxyUrl) {
+  const to = withTimeout(12000);
+  try {
+    const r = await fetch(proxyUrl, { signal: to.signal });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.text();
+  } finally { to.done(); }
+}
+
+async function fetchFeedText(url) {
+  const proxies = [];
+  if (CUSTOM_PROXY) proxies.push((u) => CUSTOM_PROXY + (CUSTOM_PROXY.includes('?') ? '&' : '?') + 'url=' + encodeURIComponent(u));
+  proxies.push((u) => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u));
+  proxies.push((u) => 'https://corsproxy.io/?url=' + encodeURIComponent(u));
+  let lastErr = new Error('fără răspuns');
+  for (const p of proxies) {
+    try {
+      const text = await fetchRaw(p(url));
+      if (looksLikeFeed(text)) return text;
+      lastErr = new Error('răspuns care nu e feed');
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr;
+}
+
+// Plan B: serviciul rss2json întoarce JSON (max 10 articole fără cheie)
+async function fetchViaRss2Json(src) {
+  const r = await fetchRaw('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(src.url));
+  const j = JSON.parse(r);
+  if (j.status !== 'ok') throw new Error('rss2json');
+  return j.items.map((it) => ({
+    title: clean(it.title),
+    link: it.link,
+    ts: toTs(it.pubDate),
+    snippet: clip(htmlToText(it.description || '').text),
+    img: it.thumbnail || (it.enclosure && it.enclosure.link) || '',
+  }));
+}
+
+function clean(s) { return (s || '').replace(/\s+/g, ' ').trim(); }
+function clip(s) { return s.length > 220 ? s.slice(0, 217).trimEnd() + '…' : s; }
+
+function htmlToText(html) {
+  const d = new DOMParser().parseFromString(html || '', 'text/html');
+  const img = d.querySelector('img');
+  return { text: clean(d.body ? d.body.textContent : ''), img: img ? img.getAttribute('src') || '' : '' };
+}
+
+function toTs(v) {
+  const t = Date.parse(v);
+  if (isNaN(t)) return Date.now();
+  return Math.min(t, Date.now());
+}
+
+function firstText(node, names) {
+  for (const n of names) {
+    const el = node.getElementsByTagName(n)[0];
+    if (el && el.textContent && el.textContent.trim()) return el.textContent;
+  }
+  return '';
+}
+
+function parseFeed(xml) {
+  const doc = new DOMParser().parseFromString(xml, 'text/xml');
+  if (doc.querySelector('parsererror')) throw new Error('XML invalid');
+  const nodes = Array.from(doc.querySelectorAll('item, entry')).slice(0, MAX_PER_SOURCE);
+  return nodes.map((n) => {
+    let link = '';
+    const links = Array.from(n.getElementsByTagName('link'));
+    const alt = links.find((l) => l.getAttribute('href') && (!l.getAttribute('rel') || l.getAttribute('rel') === 'alternate'));
+    if (alt) link = alt.getAttribute('href');
+    else if (links[0]) link = (links[0].textContent || '').trim() || links[0].getAttribute('href') || '';
+    if (!link) link = firstText(n, ['guid']).trim();
+
+    const rawDesc = firstText(n, ['description', 'summary', 'content:encoded', 'content']);
+    const parsed = htmlToText(rawDesc);
+
+    let img = '';
+    const th = n.getElementsByTagName('media:thumbnail')[0];
+    if (th) img = th.getAttribute('url') || '';
+    if (!img) {
+      const mc = Array.from(n.getElementsByTagName('media:content'))
+        .find((m) => (m.getAttribute('medium') === 'image') || (m.getAttribute('type') || '').startsWith('image'));
+      if (mc) img = mc.getAttribute('url') || '';
+    }
+    if (!img) {
+      const en = Array.from(n.getElementsByTagName('enclosure')).find((e) => (e.getAttribute('type') || '').startsWith('image'));
+      if (en) img = en.getAttribute('url') || '';
+    }
+    if (!img) img = parsed.img;
+
+    return {
+      title: clean(htmlToText(firstText(n, ['title'])).text),
+      link: link,
+      ts: toTs(firstText(n, ['pubDate', 'published', 'updated', 'dc:date'])),
+      snippet: clip(parsed.text),
+      img: img,
+    };
+  }).filter((it) => it.title && /^https?:\/\//.test(it.link));
+}
+
+async function loadSource(src) {
+  status[src.id] = { state: 'loading', n: 0 };
+  renderSources();
+  let list;
+  try {
+    list = parseFeed(await fetchFeedText(src.url));
+  } catch (e1) {
+    try { list = await fetchViaRss2Json(src); }
+    catch (e2) { list = null; }
+  }
+  if (list && list.length) {
+    itemsBySource[src.id] = list.map((it) => Object.assign({ sid: src.id }, it));
+    status[src.id] = { state: 'ok', n: list.length };
+  } else {
+    status[src.id] = { state: 'err', n: 0 };
+  }
+}
+
+async function refresh() {
+  if (refreshing) return;
+  refreshing = true;
+  $('refresh').disabled = true;
+  $('refresh').textContent = 'Se încarcă…';
+  const active = allSources().filter((s) => !off.has(s.id));
+  let pending = active.length;
+  await Promise.all(active.map((s) => loadSource(s).then(() => { pending--; renderAll(); })));
+  lastUpdate = Date.now();
+  store.set('stiri:cache', itemsBySource);
+  store.set('stiri:updated', lastUpdate);
+  refreshing = false;
+  $('refresh').disabled = false;
+  $('refresh').textContent = 'Reîncarcă';
+  renderAll();
+}
+
+/* ====== AFIȘARE ====== */
+
+function fmtTime(ts) {
+  const diff = Math.round((Date.now() - ts) / 60000);
+  if (diff < 1) return 'acum';
+  if (diff < 60) return 'acum ' + diff + ' min';
+  const d = new Date(ts);
+  const hm = d.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
+  if (diff < 360) return 'acum ' + Math.round(diff / 60) + ' h';
+  return hm;
+}
+
+function dayKey(ts) { const d = new Date(ts); return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(); }
+
+function dayLabel(ts) {
+  const now = new Date();
+  const today = dayKey(now.getTime());
+  const yesterday = dayKey(now.getTime() - 86400000);
+  const k = dayKey(ts);
+  if (k === today) return 'Azi';
+  if (k === yesterday) return 'Ieri';
+  const s = new Date(ts).toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function visibleItems() {
+  const byId = {};
+  allSources().forEach((s) => { byId[s.id] = s; });
+  const q = query.trim().toLowerCase();
+  const out = [];
+  const seen = new Set();
+  Object.keys(itemsBySource).forEach((sid) => {
+    const src = byId[sid];
+    if (!src || off.has(sid)) return;
+    if (activeCat !== 'all' && src.cat !== activeCat) return;
+    itemsBySource[sid].forEach((it) => {
+      if (seen.has(it.link)) return;
+      if (q && (it.title + ' ' + it.snippet).toLowerCase().indexOf(q) === -1) return;
+      seen.add(it.link);
+      out.push(Object.assign({ src: src }, it));
+    });
+  });
+  out.sort((a, b) => b.ts - a.ts);
+  return out.slice(0, 500);
+}
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+function renderFeed() {
+  const root = $('feed-inner');
+  root.textContent = '';
+  const items = visibleItems();
+
+  if (!items.length) {
+    const box = el('div', 'empty');
+    const failed = Object.values(status).some((s) => s.state === 'err');
+    if (refreshing) {
+      box.appendChild(el('strong', null, 'Se încarcă știrile'));
+      box.appendChild(el('span', null, 'Durează câteva secunde.'));
+    } else if (query) {
+      box.appendChild(el('strong', null, 'Nicio știre găsită'));
+      box.appendChild(el('span', null, 'Încearcă alt cuvânt sau șterge căutarea.'));
+    } else {
+      box.appendChild(el('strong', null, 'Nicio știre încă'));
+      box.appendChild(el('span', null, failed
+        ? 'Nicio sursă nu a răspuns. Verifică conexiunea la internet, apoi apasă Reîncarcă.'
+        : 'Apasă Reîncarcă ca să aduci știrile.'));
+    }
+    root.appendChild(box);
+    return;
+  }
+
+  let currentDay = '';
+  let group = null;
+  let groupCount = 0;
+  let countEl = null;
+  items.forEach((it) => {
+    const k = dayKey(it.ts);
+    if (k !== currentDay) {
+      currentDay = k;
+      const head = el('div', 'day');
+      head.appendChild(el('h2', null, dayLabel(it.ts)));
+      countEl = el('span', null, '');
+      head.appendChild(countEl);
+      root.appendChild(head);
+      groupCount = 0;
+    }
+    groupCount++;
+    countEl.textContent = groupCount + (groupCount === 1 ? ' știre' : ' știri');
+
+    const a = el('a', 'item' + (readIds.has(it.link) ? ' read' : ''));
+    a.href = it.link;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+
+    const meta = el('div', 'meta');
+    const dot = el('span', 'dot');
+    dot.style.setProperty('--c', colorFor(it.src));
+    meta.appendChild(dot);
+    meta.appendChild(el('span', 'src', it.src.name));
+    meta.appendChild(el('span', null, fmtTime(it.ts)));
+    a.appendChild(meta);
+    a.appendChild(el('h3', null, it.title));
+    if (it.snippet && it.snippet.toLowerCase() !== it.title.toLowerCase()) a.appendChild(el('p', null, it.snippet));
+
+    if (it.img && /^https?:\/\//.test(it.img)) {
+      const img = document.createElement('img');
+      img.className = 'thumb';
+      img.loading = 'lazy';
+      img.alt = '';
+      img.referrerPolicy = 'no-referrer';
+      img.src = it.img;
+      img.addEventListener('error', () => img.remove());
+      a.appendChild(img);
+    }
+
+    a.addEventListener('click', () => {
+      a.classList.add('read');
+      readIds.add(it.link);
+      const arr = Array.from(readIds).slice(-2000);
+      readIds = new Set(arr);
+      store.set('stiri:read', arr);
+    });
+    root.appendChild(a);
+  });
+}
+
+function renderSources() {
+  const root = $('sources');
+  root.textContent = '';
+  [['ro', 'România'], ['int', 'Internațional']].forEach(([cat, title]) => {
+    const list = allSources().filter((s) => s.cat === cat);
+    if (!list.length) return;
+    root.appendChild(el('h2', null, title));
+    list.forEach((s) => {
+      const row = el('div', 'src-row');
+      const label = el('label');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = !off.has(s.id);
+      cb.addEventListener('change', () => {
+        if (cb.checked) { off.delete(s.id); } else { off.add(s.id); }
+        store.set('stiri:off', Array.from(off));
+        if (cb.checked && !itemsBySource[s.id]) { loadSource(s).then(() => { store.set('stiri:cache', itemsBySource); renderAll(); }); }
+        renderAll();
+      });
+      const dot = el('span', 'dot');
+      dot.style.setProperty('--c', colorFor(s));
+      label.appendChild(cb);
+      label.appendChild(dot);
+      label.appendChild(el('span', 'src-name', s.name));
+      row.appendChild(label);
+
+      const st = status[s.id];
+      if (!off.has(s.id) && st) {
+        if (st.state === 'loading') row.appendChild(el('span', 'src-state', 'se încarcă'));
+        else if (st.state === 'err') row.appendChild(el('span', 'src-state err', 'nu merge'));
+        else row.appendChild(el('span', 'src-state', String(st.n)));
+      }
+      if (custom.some((c) => c.id === s.id)) {
+        const rm = el('button', 'link-btn', 'Șterge');
+        rm.type = 'button';
+        rm.addEventListener('click', () => {
+          custom = custom.filter((c) => c.id !== s.id);
+          delete itemsBySource[s.id];
+          delete status[s.id];
+          store.set('stiri:custom', custom);
+          store.set('stiri:cache', itemsBySource);
+          renderAll();
+        });
+        row.appendChild(rm);
+      }
+      root.appendChild(row);
+    });
+  });
+  const add = el('button', 'btn add-src', 'Adaugă sursă');
+  add.type = 'button';
+  add.addEventListener('click', openAdd);
+  root.appendChild(add);
+}
+
+function renderStats() {
+  const n = visibleItems().length;
+  const okCount = Object.values(status).filter((s) => s.state === 'ok').length;
+  const today = new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' });
+  const date = today.charAt(0).toUpperCase() + today.slice(1);
+  let line = date + '. ' + n + ' știri';
+  if (okCount) line += ' din ' + okCount + ' surse';
+  if (lastUpdate) line += '. Actualizat la ' + new Date(lastUpdate).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
+  $('stats').textContent = line;
+}
+
+function renderAll() { renderFeed(); renderSources(); renderStats(); }
+
+/* ====== INTERACȚIUNE ====== */
+
+document.querySelectorAll('.seg button').forEach((b) => {
+  b.addEventListener('click', () => {
+    activeCat = b.dataset.cat;
+    document.querySelectorAll('.seg button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    renderAll();
+    $('feed').scrollTop = 0;
+  });
+});
+
+let qTimer = null;
+$('q').addEventListener('input', (e) => {
+  clearTimeout(qTimer);
+  qTimer = setTimeout(() => { query = e.target.value; renderFeed(); renderStats(); }, 150);
+});
+
+$('refresh').addEventListener('click', refresh);
+$('toggle-sources').addEventListener('click', () => {
+  const on = $('app').classList.toggle('show-sources');
+  $('toggle-sources').textContent = on ? 'Înapoi la știri' : 'Surse';
+});
+
+const dlg = $('add-dialog');
+function openAdd() { $('f-err').textContent = ''; $('add-form').reset(); dlg.showModal(); }
+$('f-cancel').addEventListener('click', () => dlg.close());
+$('add-form').addEventListener('submit', (e) => {
+  const name = $('f-name').value.trim();
+  const url = $('f-url').value.trim();
+  if (!/^https?:\/\//.test(url)) { e.preventDefault(); $('f-err').textContent = 'Adresa trebuie să înceapă cu http:// sau https://'; return; }
+  if (allSources().some((s) => s.url === url)) { e.preventDefault(); $('f-err').textContent = 'Sursa asta există deja.'; return; }
+  const src = { id: 'c' + Date.now(), name: name, cat: $('f-cat').value, url: url };
+  custom.push(src);
+  store.set('stiri:custom', custom);
+  loadSource(src).then(() => { store.set('stiri:cache', itemsBySource); renderAll(); });
+  renderAll();
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && Date.now() - lastUpdate > 5 * 60000) refresh();
+});
+setInterval(() => { if (!document.hidden) refresh(); }, REFRESH_MINUTES * 60000);
+
+/* Pictograma pentru ecranul principal, desenată la încărcare */
+(function makeIcon() {
+  try {
+    const c = document.createElement('canvas');
+    c.width = c.height = 180;
+    const g = c.getContext('2d');
+    g.fillStyle = '#2744D8';
+    g.fillRect(0, 0, 180, 180);
+    g.fillStyle = '#FFFFFF';
+    g.font = 'bold 120px Georgia, serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText('Ș', 90, 98);
+    $('touch-icon').href = c.toDataURL('image/png');
+  } catch (e) { /* fără pictogramă */ }
+})();
+
+/* Pornire */
+renderAll();
+refresh();
+</script>
+</body>
+</html>
